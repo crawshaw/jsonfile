@@ -1,3 +1,6 @@
+// Copyright (c) David Crawshaw
+// SPDX-License-Identifier: BSD-3-Clause
+
 // Package jsonfiledb persists a Go value to a JSON file.
 package jsonfiledb
 

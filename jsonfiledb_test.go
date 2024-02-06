@@ -1,3 +1,6 @@
+// Copyright (c) David Crawshaw
+// SPDX-License-Identifier: BSD-3-Clause
+
 package jsonfiledb
 
 import (
