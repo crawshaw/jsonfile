@@ -1,7 +1,7 @@
 // Copyright (c) David Crawshaw
 // SPDX-License-Identifier: BSD-3-Clause
 
-package jsonfiledb
+package jsonfile
 
 import (
 	"errors"
@@ -12,54 +12,54 @@ import (
 	"testing"
 )
 
-func mustWrite[DB any](t *testing.T, db *JSONFileDB[DB], fn func(db *DB)) {
+func mustWrite[Data any](t *testing.T, data *JSONFile[Data], fn func(db *Data)) {
 	t.Helper()
-	if err := db.Write(func(db *DB) error { fn(db); return nil }); err != nil {
+	if err := data.Write(func(db *Data) error { fn(db); return nil }); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestBasic(t *testing.T) {
 	t.Parallel()
-	type DB struct {
+	type Data struct {
 		Name    string
 		Friends []string
 		Ages    map[string]int
 	}
-	want := DB{
+	want := Data{
 		Name:    "Alice",
 		Friends: []string{"Bob", "Carol", "Dave"},
 		Ages:    map[string]int{"Bob": 25, "Carol": 30, "Dave": 35},
 	}
 
 	path := filepath.Join(t.TempDir(), "testbasic.json")
-	db, err := New[DB](path)
+	data, err := New[Data](path)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	mustWrite(t, db, func(db *DB) {
-		db.Name = want.Name
-		db.Friends = append([]string{}, want.Friends...)
-		db.Ages = make(map[string]int, len(want.Ages))
+	mustWrite(t, data, func(data *Data) {
+		data.Name = want.Name
+		data.Friends = append([]string{}, want.Friends...)
+		data.Ages = make(map[string]int, len(want.Ages))
 		for k, v := range want.Ages {
-			db.Ages[k] = v
+			data.Ages[k] = v
 		}
 	})
 
-	db.Read(func(db *DB) {
-		if !reflect.DeepEqual(*db, want) {
-			t.Errorf("got %+v, want %+v", *db, want)
+	data.Read(func(data *Data) {
+		if !reflect.DeepEqual(*data, want) {
+			t.Errorf("got %+v, want %+v", *data, want)
 		}
 	})
 
-	db, err = Load[DB](path)
+	data, err = Load[Data](path)
 	if err != nil {
 		t.Fatal(err)
 	}
-	db.Read(func(db *DB) {
-		if !reflect.DeepEqual(*db, want) {
-			t.Errorf("got %+v, want %+v", *db, want)
+	data.Read(func(data *Data) {
+		if !reflect.DeepEqual(*data, want) {
+			t.Errorf("got %+v, want %+v", *data, want)
 		}
 	})
 }

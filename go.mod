@@ -1,3 +1,3 @@
-module crawshaw.dev/jsonfiledb
+module crawshaw.dev/jsonfile
 
 go 1.21.6
