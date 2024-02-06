@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 )
 
@@ -46,6 +47,7 @@ func TestBasic(t *testing.T) {
 			data.Ages[k] = v
 		}
 	})
+	mustWrite(t, data, func(*Data) {}) // noop
 
 	data.Read(func(data *Data) {
 		if !reflect.DeepEqual(*data, want) {
@@ -148,4 +150,33 @@ func TestNoAlias(t *testing.T) {
 	db.Read(checkVals)
 	someVals[0] = 10
 	db.Read(checkVals) // db.Vals not aliasing someVals
+}
+
+func TestBadLoad(t *testing.T) {
+	t.Parallel()
+	type DB struct{ Val int }
+
+	path := filepath.Join(t.TempDir(), "testbadload.json")
+	_, err := Load[DB](path)
+	if !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("Load err=%v, want %v", err, os.ErrNotExist)
+	}
+
+	if err := os.WriteFile(path, []byte("not json"), 0666); err != nil {
+		t.Fatal(err)
+	}
+	_, err = Load[DB](path)
+	if err == nil || !strings.Contains(err.Error(), "invalid character") {
+		t.Fatalf("Load err=%v, want error", err)
+	}
+}
+
+func TestBadNew(t *testing.T) {
+	t.Parallel()
+	type DB struct{ Val int }
+
+	_, err := New[DB](t.TempDir())
+	if !errors.Is(err, os.ErrExist) {
+		t.Fatalf("New err=%v, want %v", err, os.ErrExist)
+	}
 }
